@@ -8,7 +8,7 @@ module Apipie
   # validator - Validator::BaseValidator subclass
   class ParamDescription
 
-    attr_reader :method_description, :name, :desc, :allow_nil, :validator, :options, :metadata, :show, :as, :for
+    attr_reader :method_description, :name, :desc, :allow_nil, :validator, :options, :metadata, :show, :as, :for, :example
     attr_accessor :parent, :required
 
     def self.from_dsl_data(method_description, args)
@@ -56,6 +56,7 @@ module Apipie
       end
 
       @for = options[:for] || nil
+      @example = options[:example] || nil
       @allow_nil = @options[:allow_nil] || false
 
       action_awareness
@@ -134,7 +135,8 @@ module Apipie
           :metadata => metadata,
           :show => show,
           :expected_type => validator.expected_type,
-          :for => get_for
+          :for => get_for,
+          :example => example
         }
       end
     end
