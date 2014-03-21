@@ -17,7 +17,7 @@
       <%= param[:description].html_safe %>
       <% unless param[:example].blank? %>
         <br>
-        Example: <pre class="prettyprint" style="display: inline-block"><%= param[:example].to_s %></pre>
+        Example: <code><%= param[:example].to_s %></code>
       <% end %>
       <% unless param[:validator].blank? %>
         <br>
