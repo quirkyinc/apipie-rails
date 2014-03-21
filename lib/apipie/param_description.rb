@@ -8,7 +8,7 @@ module Apipie
   # validator - Validator::BaseValidator subclass
   class ParamDescription
 
-    attr_reader :method_description, :name, :desc, :allow_nil, :validator, :options, :metadata, :show, :as
+    attr_reader :method_description, :name, :desc, :allow_nil, :validator, :options, :metadata, :show, :as, :for
     attr_accessor :parent, :required
 
     def self.from_dsl_data(method_description, args)
@@ -55,6 +55,7 @@ module Apipie
         true
       end
 
+      @for = options[:for] || nil
       @allow_nil = @options[:allow_nil] || false
 
       action_awareness
@@ -86,6 +87,15 @@ module Apipie
       name_parts = parents_and_self.map{|p| p.name if p.show}.compact
       return name.to_s if name_parts.blank?
       return ([name_parts.first] + name_parts[1..-1].map { |n| "[#{n}]" }).join("")
+    end
+
+    def get_for
+      obj = parents_and_self.first.method_description.apis.each_with_object({}) do |api, obj|
+        obj[api.as] = api.path unless api.as.blank?
+      end
+
+      return obj[@for] unless obj.nil?
+      nil
     end
 
     # returns an array of all the parents: starting with the root parent
@@ -123,7 +133,8 @@ module Apipie
           :validator => validator.to_s,
           :metadata => metadata,
           :show => show,
-          :expected_type => validator.expected_type
+          :expected_type => validator.expected_type,
+          :for => get_for
         }
       end
     end

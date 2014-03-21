@@ -30,7 +30,10 @@ module Apipie
          :see               => [],
          :formats           => nil,
          :api_versions      => [],
-         :meta              => nil
+         :meta              => nil,
+         :example           => nil,
+         :for               => nil,
+         :as                => nil
        }
       end
     end
@@ -79,7 +82,8 @@ module Apipie
       #
       def api(method, path, desc = nil, options={}) #:doc:
         return unless Apipie.active_dsl?
-        _apipie_dsl_data[:api_args] << [method, path, desc]
+        _apipie_dsl_data[:api_args] << [method, path, desc, options]
+        _apipie_dsl_data[:as] = options[:as]
       end
 
       # Reference other similar method
@@ -201,7 +205,18 @@ module Apipie
             if Apipie.configuration.validate_presence?
               description.params.each do |_, param|
                 # check if required parameters are present
-                raise ParamMissing.new(param.name) if param.required && !params.has_key?(param.name)
+                current_api = nil
+                description.apis.each do |api|
+                  path = Regexp.new('^' + Apipie.api_base_url.sub('/', '\/') + api.path.gsub(/\:[^\/]+/i, '[^\/]+'), 'i')
+                  if request.path =~ path
+                    current_api = api
+                    break
+                  end
+                end
+
+                if ((current_api.as && param.for) && (current_api.as == param.for)) || (!current_api.as || !param.for)
+                  raise ParamMissing.new(param.name) if param.required && !params.has_key?(param.name)
+                end
               end
             end
 

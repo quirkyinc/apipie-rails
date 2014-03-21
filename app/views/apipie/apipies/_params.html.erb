@@ -15,9 +15,18 @@
     </td>
     <td>
       <%= param[:description].html_safe %>
+      <% unless param[:example].blank? %>
+        <br>
+        Example: <pre class="prettyprint"><%= params[:example] %></pre>
+      <% end %>
       <% unless param[:validator].blank? %>
         <br>
         Value: <%= param[:validator] %>
+      <% end %>
+
+      <% unless param[:for].blank? %>
+        <br>
+        * Only required for <em><%= param[:for].to_s %></em>
       <% end %>
 
       <% unless param[:metadata].blank? %>

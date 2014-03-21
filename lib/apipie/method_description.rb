@@ -5,12 +5,13 @@ module Apipie
 
     class Api
 
-      attr_accessor :short_description, :path, :http_method
+      attr_accessor :short_description, :path, :http_method, :as
 
-      def initialize(method, path, desc)
+      def initialize(method, path, desc, opts)
         @http_method = method.to_s
         @path = path
         @short_description = desc
+        @as = opts[:as]
       end
 
     end
@@ -22,8 +23,8 @@ module Apipie
       @resource = resource
       @from_concern = dsl_data[:from_concern]
 
-      @apis = dsl_data[:api_args].map do |method, path, desc|
-        MethodDescription::Api.new(method, concern_subst(path), concern_subst(desc))
+      @apis = dsl_data[:api_args].map do |method, path, desc, opts|
+        MethodDescription::Api.new(method, concern_subst(path), concern_subst(desc), opts)
       end
 
       desc = dsl_data[:description] || ''
@@ -37,6 +38,7 @@ module Apipie
         Apipie::SeeDescription.new(args)
       end
 
+      @example = dsl_data[:example]
       @formats = dsl_data[:formats]
       @examples = dsl_data[:examples]
       @examples += load_recorded_examples
@@ -137,6 +139,7 @@ module Apipie
         :params => params_ordered.map(&:to_json).flatten,
         :examples => @examples,
         :metadata => @metadata,
+        :example => @example,
         :see => see.map(&:to_json)
       }
     end
