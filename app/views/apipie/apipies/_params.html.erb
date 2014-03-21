@@ -9,7 +9,7 @@
     <td>
       <strong><%= param[:full_name] %> </strong><br>
       <small>
-        <%= param[:required] ? 'required' : 'optional' %>
+        <%= param[:required] ? 'required' : 'optional' %><%= '*' if param[:for].present? %>
         <%= param[:allow_nil] ? ', nil allowed' : '' %>
       </small>
     </td>
