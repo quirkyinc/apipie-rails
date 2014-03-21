@@ -214,7 +214,7 @@ module Apipie
                   end
                 end
 
-                if (current_api && ((current_api.as && param.for) && (current_api.as == param.for)) || (!current_api.as || !param.for)) || current_api.blank?
+                if (current_api && ((current_api.respond_to?(:as) && param.respond_to?(:for)) && (current_api.as == param.for)) || (!current_api.respond_to?(:as) || !param.respond_to?(:for))) || current_api.blank?
                   raise ParamMissing.new(param.name) if param.required && !params.has_key?(param.name)
                 end
               end
