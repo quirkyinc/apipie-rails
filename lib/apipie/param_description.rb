@@ -35,11 +35,15 @@ module Apipie
 
       # we save options to know what was passed in DSL
       @options = options
+      if @options[:param_group]
+        @from_concern = @options[:param_group][:from_concern]
+      end
 
       @method_description = method_description
       @name = concern_subst(name)
       @as = options[:as] || @name
-      @desc = concern_subst(Apipie.markup_to_html(@options[:desc] || ''))
+      @desc = preformat_text(@options[:desc])
+
       @parent = @options[:parent]
       @metadata = @options[:meta]
 
@@ -65,6 +69,10 @@ module Apipie
         @validator = Validator::BaseValidator.find(self, validator, @options, block)
         raise "Validator for #{validator} not found." unless @validator
       end
+    end
+
+    def from_concern?
+      method_description.from_concern? || @from_concern
     end
 
     def validate(value)
@@ -110,12 +118,12 @@ module Apipie
       ret
     end
 
-    def to_json
-      if validator.is_a? Apipie::Validator::HashValidator
+    def to_json(long = nil)
+      hash = if validator.is_a? Apipie::Validator::HashValidator
         {
           :name => name.to_s,
           :full_name => full_name,
-          :description => desc,
+          :description => preformat_text(Apipie.app.translate(@options[:desc], lang)),
           :required => required,
           :allow_nil => allow_nil,
           :validator => validator.to_s,
@@ -139,6 +147,12 @@ module Apipie
           :example => example
         }
       end
+
+      if sub_params = validator.params_ordered
+        hash[:params] = sub_params.map { |p| p.to_json(lang) }
+      end
+
+      hash
     end
 
     def merge_with(other_param_desc)
@@ -212,7 +226,7 @@ module Apipie
     end
 
     def concern_subst(string)
-      return string if string.nil? or !method_description.from_concern?
+      return string if string.nil? or !from_concern?
 
       original = string
       string = ":#{original}" if original.is_a? Symbol
@@ -222,6 +236,10 @@ module Apipie
       return original if replaced == string
       return replaced.to_sym if original.is_a? Symbol
       return replaced
+    end
+
+    def preformat_text(text)
+      concern_subst(Apipie.markup_to_html(text || ''))
     end
 
   end

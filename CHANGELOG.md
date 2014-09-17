@@ -2,6 +2,99 @@
  Changelog
 ===========
 
+v0.2.6
+------
+
+* better handling on cases where resource/method is not found when cache is turned off
+  [#284](https://github.com/Apipie/apipie-rails/pull/284) [@iNecas][]
+* fix disqus integration
+  [#281](https://github.com/Apipie/apipie-rails/pull/281) [@RajRoR][]
+
+v0.2.5
+------
+
+* Name substitution for referenced param_group defined in a concern
+  [#280](https://github.com/Apipie/apipie-rails/pull/280) [@tstrachota][]
+* expected_type 'array' for ArrayValidator
+  [#276](https://github.com/Apipie/apipie-rails/pull/276) [@dustint-rh][]
+
+THE FURTHER SUPPORT FOR RUBY 1.8.7 WILL NOT BE ENSURED IN THE MASTER
+AND THE `>= 0.3.0` RELAEASES. We discourage anyone to keep using ruby
+1.8.7 for anything. If you're aware of the issues and still willing to
+take the risk, we are willing to keep the v0.2.x releases based on the
+v0.2.x branch. However, we will not actively develop or backport any
+new features to this branch neither will we accept there features that
+are not in the master branch.
+
+v0.2.4
+------
+
+* fix ruby 1.8.7 compatibility
+  [#272](https://github.com/Apipie/apipie-rails/pull/272) [@domcleal][]
+
+v0.2.3
+------
+
+* add an option to flag an api route as deprecated
+  [#268](https://github.com/Apipie/apipie-rails/pull/268) [@komidore64][]
+* add ability to pass additional options to apipie route
+  [#269](https://github.com/Apipie/apipie-rails/pull/269) [@exAspArk][]
+* enhanced array validator
+  [#259](https://github.com/Apipie/apipie-rails/pull/259) [@mourad-ifeelgoods][]
+
+
+v0.2.2
+------
+
+* prevent rspec 3 from being used. It is not compatible.
+  [#255](https://github.com/Apipie/apipie-rails/pull/255) [@lsylvester][]
+* fixed extractor root route (handle nil path)
+  [#257](https://github.com/Apipie/apipie-rails/pull/257) [@ctria][]
+* reduced rails dependency to development only
+  [#266](https://github.com/Apipie/apipie-rails/pull/266) [@klobuczek][]
+* add more options to apipie:cache to generate only parts of the
+  static pages
+  [#262](https://github.com/Apipie/apipie-rails/pull/262) [@mbacovsky][]
+
+v0.2.1
+------
+
+* fix typo in the localization string
+  [#244](https://github.com/Apipie/apipie-rails/pull/244) [@alem0lars][]
+* fix syntax errors in 404 page
+  [#246](https://github.com/Apipie/apipie-rails/pull/246) [@richardsondx][]
+
+
+v0.2.0
+------
+
+This is not full backward compatible release, as the format of storing
+examples changed from YAML to JSON: the default location is at
+`doc/apipie_examples.json`. The migration should be as easy as
+running:
+
+```
+rake apipie:convert_examples
+```
+
+Also please not Rails 3.0 support was deprecated and the compatibility
+wont be tracked anymore in next releases.
+
+* dump examples as json
+  [#125](https://github.com/Apipie/apipie-rails/pull/125) [@johanneswuerbach][]
+* support for localized API documentation
+  [#232](https://github.com/Apipie/apipie-rails/pull/232) [@mbacovsky][]
+* configuration option to always record examples
+  [#239](https://github.com/Apipie/apipie-rails/pull/239) [@arathunku][]
+* deprecate Rails 3.0
+  [#241](https://github.com/Apipie/apipie-rails/pull/241) [@iNecas][]
+
+v0.1.3
+------
+
+* nested attributes showing in the documentation
+  [#230](https://github.com/Apipie/apipie-rails/pull/230) [@iNecas][]
+
 v0.1.2
 ------
 
@@ -113,3 +206,16 @@ v0.0.15
 [@mkrajewski]: https://github.com/mkrajewski
 [@iNecas]: https://github.com/iNecas
 [@clamoris]: https://github.com/clamoris
+[@arathunku]: https://github.com/arathunku
+[@johanneswuerbach]: https://github.com/johanneswuerbach
+[@richardsondx]: https://github.com/richardsondx
+[@alem0lars]: https://github.com/alem0lars
+[@lsylvester]: https://github.com/lsylverster
+[@ctria]: https://github.com/ctria
+[@klobuczek]: https://github.com/klobuczek
+[@komidore64]: https://github.com/komidore64
+[@exAspArk]: https://github.com/exAspArk
+[@mourad-ifeelgoods]: https://github.com/mourad-ifeelgoods
+[@domcleal]: https://github.com/domcleal
+[@dustint-rh]: https://github.com/dustint-rh
+[@RajRoR]: https://github.com/RajRoR

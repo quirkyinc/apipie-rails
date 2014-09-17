@@ -81,20 +81,27 @@ module Apipie
 
     def api_url; "#{Apipie.api_base_url(_version)}#{@_path}"; end
 
-    def to_json(method_name = nil)
+    def valid_method_name?(method_name)
+      @_methods.keys.map(&:to_s).include?(method_name.to_s)
+    end
+
+    def to_json(method_name = nil, lang = nil)
+      if method_name && !valid_method_name?(method_name)
+        raise "Method #{method_name} not found for resource #{_name}"
+      end
 
       methods = if method_name.blank?
-        @_methods.collect { |key, method_description| method_description.to_json}
+        @_methods.collect { |key, method_description| method_description.to_json(lang) }
       else
-        [@_methods[method_name.to_sym].to_json]
+        [@_methods[method_name.to_sym].to_json(lang)]
       end
 
       {
         :doc_url => doc_url,
         :api_url => api_url,
         :name => @_name,
-        :short_description => @_short_description,
-        :full_description => @_full_description,
+        :short_description => Apipie.app.translate(@_short_description, lang),
+        :full_description => Apipie.app.translate(@_full_description, lang),
         :version => _version,
         :formats => @_formats,
         :metadata => @_metadata,

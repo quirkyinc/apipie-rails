@@ -11,12 +11,18 @@
     <span class='divider'>/</span>
   </li>
   <li class='active'><%= @method[:name] %></li>
+  <%= render(:partial => "languages", :locals => {:doc_url => @method[:doc_url]}) %>
+
 </ul>
 
 <% @method[:apis].each do |api| %>
   <div class='page-header'>
     <h1>
-      <%= api[:http_method] %> <%= api[:api_url] %><br>
+      <%= api[:http_method] %> <%= api[:api_url] %>
+      <% if api[:deprecated] %>
+        <code>DEPRECATED</code>
+      <% end %>
+      <br>
       <small><%= raw api[:short_description] %></small>
     </h1>
   </div>
@@ -30,6 +36,6 @@
   <%= render(:partial => "method_detail", :locals => {:method => @method, :h_level => 2}) %>
 </div>
 
-<% content_for :apipie_footer do %>
-  <%= raw @doc[:copyright] %>
+<% unless content_for(:apipie_footer) == @doc[:copyright] %>
+  <%= content_for :apipie_footer, raw(@doc[:copyright]) %>
 <% end %>

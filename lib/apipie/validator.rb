@@ -70,6 +70,10 @@ module Apipie
         raise NotImplementedError, "Dont know how to merge #{self.inspect} with #{other_validator.inspect}"
       end
 
+      def params_ordered
+        nil
+      end
+
     end
 
     # validate arguments type
@@ -130,8 +134,7 @@ module Apipie
     end
 
     # arguments value must be one of given in array
-    class ArrayValidator < BaseValidator
-
+    class EnumValidator < BaseValidator
       def initialize(param_description, argument)
         super(param_description)
         @array = argument
@@ -147,6 +150,77 @@ module Apipie
 
       def description
         "Must be one of: #{@array.join(', ')}."
+      end
+    end
+
+    # arguments value must be an array
+    class ArrayValidator < Apipie::Validator::BaseValidator
+      def initialize(param_description, argument, options={})
+        super(param_description)
+        @type = argument
+        @items_type = options[:of]
+        @items_enum = options[:in]
+      end
+
+      def validate(values)
+        return false unless process_value(values).respond_to?(:each) && !process_value(values).is_a?(String)
+        process_value(values).all? { |v| validate_item(v)}
+      end
+
+      def process_value(values)
+        values || []
+      end
+
+      def description
+        "Must be an array of #{items}"
+      end
+
+      def expected_type
+        "array"
+      end
+
+      def self.build(param_description, argument, options, block)
+        if argument == Array && !block.is_a?(Proc)
+          self.new(param_description, argument, options)
+        end
+      end
+
+      private
+
+      def enum
+        if @items_enum.kind_of?(Proc)
+          @items_enum = Array(@items_enum.call)
+        end
+        @items_enum
+      end
+
+      def validate_item(value)
+        has_valid_type?(value) &&
+          is_valid_value?(value)
+      end
+
+      def has_valid_type?(value)
+        if @items_type
+          value.kind_of?(@items_type)
+        else
+          true
+        end
+      end
+
+      def is_valid_value?(value)
+        if enum
+          enum.include?(value)
+        else
+          true
+        end
+      end
+
+      def items
+        unless enum
+          @items_type || "any type"
+        else
+          enum.inspect
+        end
       end
     end
 
@@ -218,8 +292,8 @@ module Apipie
         prepare_hash_params
       end
 
-      def hash_params_ordered
-        @hash_params_ordered ||= _apipie_dsl_data[:params].map do |args|
+      def params_ordered
+        @params_ordered ||= _apipie_dsl_data[:params].map do |args|
           options = args.find { |arg| arg.is_a? Hash }
           options[:parent] = self.param_description
           Apipie::ParamDescription.from_dsl_data(param_description.method_description, args)
@@ -267,7 +341,7 @@ module Apipie
 
       def merge_with(other_validator)
         if other_validator.is_a? HashValidator
-          @hash_params_ordered = ParamDescription.unify(self.hash_params_ordered + other_validator.hash_params_ordered)
+          @params_ordered = ParamDescription.unify(self.params_ordered + other_validator.params_ordered)
           prepare_hash_params
         else
           super
@@ -275,7 +349,7 @@ module Apipie
       end
 
       def prepare_hash_params
-        @hash_params = hash_params_ordered.reduce({}) do |h, param|
+        @hash_params = params_ordered.reduce({}) do |h, param|
           h.update(param.name.to_sym => param)
         end
       end
@@ -333,6 +407,10 @@ module Apipie
         end
       end
 
+      def expected_type
+        'boolean'
+      end
+
       def description
         "Must be 'true' or 'false'"
       end
@@ -370,8 +448,16 @@ module Apipie
         self.new(param_description, block, options[:param_group]) if block.is_a?(Proc) && block.arity <= 0 && argument == Array
       end
 
+      def expected_type
+        'array'
+      end
+
       def description
         "Must be an Array of nested elements"
+      end
+
+      def params_ordered
+        @validator.params_ordered
       end
     end
 

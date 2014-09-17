@@ -5,13 +5,14 @@ module Apipie
 
     class Api
 
-      attr_accessor :short_description, :path, :http_method, :as
+      attr_accessor :short_description, :path, :http_method, :options, :as
 
       def initialize(method, path, desc, opts)
         @http_method = method.to_s
         @path = path
         @short_description = desc
         @as = opts[:as]
+        @options = optoins
       end
 
     end
@@ -23,8 +24,8 @@ module Apipie
       @resource = resource
       @from_concern = dsl_data[:from_concern]
 
-      @apis = dsl_data[:api_args].map do |method, path, desc, opts|
-        MethodDescription::Api.new(method, concern_subst(path), concern_subst(desc), opts)
+      @apis = dsl_data[:api_args].map do |mthd, path, desc, opts|
+        MethodDescription::Api.new(mthd, concern_subst(path), concern_subst(desc), opts)
       end
 
       desc = dsl_data[:description] || ''
@@ -110,12 +111,13 @@ module Apipie
       return path
     end
 
-    def method_apis_to_json
+    def method_apis_to_json(lang = nil)
       @apis.each.collect do |api|
         {
           :api_url => create_api_url(api),
           :http_method => api.http_method.to_s,
-          :short_description => api.short_description
+          :short_description => Apipie.app.translate(api.short_description, lang),
+          :deprecated => api.options[:deprecated]
         }
       end
     end
@@ -128,15 +130,15 @@ module Apipie
       @formats || @resource._formats
     end
 
-    def to_json
+    def to_json(lang=nil)
       {
         :doc_url => doc_url,
         :name => @method,
-        :apis => method_apis_to_json,
+        :apis => method_apis_to_json(lang),
         :formats => formats,
-        :full_description => @full_description,
+        :full_description => Apipie.app.translate(@full_description, lang),
         :errors => errors.map(&:to_json),
-        :params => params_ordered.map(&:to_json).flatten,
+        :params => params_ordered.map{ |param| param.to_json(lang) }.flatten,
         :examples => @examples,
         :metadata => @metadata,
         :example => @example,

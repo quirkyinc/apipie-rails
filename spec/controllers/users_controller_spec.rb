@@ -192,7 +192,7 @@ describe UsersController do
         param = a.params_ordered.select {|p| p.name == :user }
         param.count.should == 1
         param.first.validator.class.should eq(Apipie::Validator::HashValidator)
-        hash_params = param.first.validator.hash_params_ordered
+        hash_params = param.first.validator.params_ordered
         hash_params.count.should == 4
         hash_params[0].name == :name
         hash_params[1].name == :pass
@@ -517,7 +517,7 @@ EOS2
 
       param = a.params[:array_param]
       param.desc.should eq("\n<p>array validator</p>\n")
-      param.validator.class.should be(Apipie::Validator::ArrayValidator)
+      param.validator.class.should be(Apipie::Validator::EnumValidator)
       param.validator.instance_variable_get("@array").should
         eq([100, "one", "two", 1, 2])
 

@@ -207,37 +207,26 @@ module Apipie
 
     def recorded_examples
       return @recorded_examples if @recorded_examples
-      tape_file = File.join(Rails.root,"doc","apipie_examples.yml")
-      if File.exists?(tape_file)
-        #if SafeYAML gem is enabled, it will load examples as an array of Hash, instead of hash
-        if YAML.respond_to?(:safe_load_file) && defined?(SafeYAML)
-          @recorded_examples = YAML.load_file(tape_file, :safe=>false)
-        else
-          @recorded_examples = YAML.load_file(tape_file)
-        end
-      else
-        @recorded_examples = {}
-      end
-      @recorded_examples
+      @recorded_examples = Apipie::Extractor::Writer.load_recorded_examples
     end
 
     def reload_examples
       @recorded_examples = nil
     end
 
-    def to_json(version, resource_name, method_name)
+    def to_json(version, resource_name, method_name, lang)
 
-      return unless resource_descriptions.has_key?(version)
+      return unless valid_search_args?(version, resource_name, method_name)
 
       _resources = if resource_name.blank?
         # take just resources which have some methods because
         # we dont want to show eg ApplicationController as resource
         resource_descriptions[version].inject({}) do |result, (k,v)|
-          result[k] = v.to_json unless v._methods.blank?
+          result[k] = v.to_json(nil, lang) unless v._methods.blank?
           result
         end
       else
-        [@resource_descriptions[version][resource_name].to_json(method_name)]
+        [@resource_descriptions[version][resource_name].to_json(method_name, lang)]
       end
 
       url_args = Apipie.configuration.version_in_url ? version : ''
@@ -245,7 +234,7 @@ module Apipie
       {
         :docs => {
           :name => Apipie.configuration.app_name,
-          :info => Apipie.app_info(version),
+          :info => translate(Apipie.app_info(version), lang),
           :copyright => Apipie.configuration.copyright,
           :doc_url => Apipie.full_url(url_args),
           :api_url => Apipie.api_base_url(version),
@@ -259,12 +248,18 @@ module Apipie
     end
 
     def reload_documentation
+      # don't load translated strings, we'll translate them later
+      old_locale = locale
+      locale = Apipie.configuration.default_locale
+
       rails_mark_classes_for_reload
 
       api_controllers_paths.each do |f|
         load_controller_from_file f
       end
       @checksum = nil if Apipie.configuration.update_checksum
+
+      locale = old_locale
     end
 
     def compute_checksum
@@ -311,7 +306,37 @@ module Apipie
       end
     end
 
+    def locale
+      Apipie.configuration.locale.call(nil) if Apipie.configuration.locale
+    end
+
+    def locale=(locale)
+      Apipie.configuration.locale.call(locale) if Apipie.configuration.locale
+    end
+
+    def translate(str, locale)
+      if Apipie.configuration.translate
+        Apipie.configuration.translate.call(str, locale)
+      else
+        str
+      end
+    end
+
     private
+
+    # Make sure that the version/resource_name/method_name are valid combination
+    # resource_name and method_name can be nil
+    def valid_search_args?(version, resource_name, method_name)
+      return false unless self.resource_descriptions.has_key?(version)
+      if resource_name
+        return false unless self.resource_descriptions[version].has_key?(resource_name)
+        if method_name
+          resource_description = self.resource_descriptions[version][resource_name]
+          return false unless resource_description.valid_method_name?(method_name)
+        end
+      end
+      return true
+    end
 
     def version_prefix(klass)
       version = controller_versions(klass).first

@@ -7,6 +7,7 @@
     <%= @resource[:name] %>
     <% if @resource[:version] %><% end %>
   </li>
+  <%= render(:partial => "languages", :locals => {:doc_url => @resource[:doc_url]}) %>
 </ul>
 
 <div class='page-header'>
@@ -46,7 +47,11 @@
            data-toggle='collapse'
            data-parent='#accordion'>
             <%= api[:http_method] %> <%= api[:api_url] %>
-          </a><br>
+          </a>
+          <% if api[:deprecated] %>
+            <code>DEPRECATED</code>
+          <% end %>
+          <br>
           <small><%= raw api[:short_description] %></small>
         </h2>
       <% end %>
@@ -62,6 +67,6 @@
   <% end %>
 </div>
 
-<% content_for :apipie_footer do %>
-  <%= raw @doc[:copyright] %>
+<% unless content_for(:apipie_footer) == @doc[:copyright] %>
+  <%= content_for :apipie_footer, raw(@doc[:copyright]) %>
 <% end %>
